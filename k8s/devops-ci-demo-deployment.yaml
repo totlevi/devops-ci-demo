@@ -32,6 +32,7 @@ spec:
             - containerPort: 8088
               hostPort: 8080
               protocol: TCP
+          imagePullPolicy: Never
           resources: {}
       restartPolicy: Always
 status: {}
