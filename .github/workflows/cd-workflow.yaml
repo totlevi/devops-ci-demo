@@ -14,19 +14,28 @@ jobs:
 
       - name: Set up Minikube
         uses: dawidd6/action-setup-minikube@v2
+        with:
+          driver: docker
 
       - name: Install kubectl
-        uses: azure/setup-kubectl@v1.0.0
+        uses: azure/setup-kubectl@v1
+
+      - name: Configure Docker to use Minikube's Daemon
+        run: eval $(minikube -p minikube docker-env)
 
       - name: Load Docker image into Minikube
         run: |
-          eval $(minikube -p minikube docker-env)
-          docker pull ghcr.io/dafessor/devops-ci-demo/devops-ci-demo-img:latest
           docker tag ghcr.io/dafessor/devops-ci-demo/devops-ci-demo-img:latest minikube/devops-ci-demo-img:latest
           docker images
 
-      - name: Apply Kubernetes Deployment
-        run: kubectl apply -f kubernetes/deployment.yaml
+      - name: Apply Kubernetes Deployment and Service
+        run: |
+          kubectl apply -f k8s/devops-ci-demo-deployment.yaml
+          kubectl apply -f k8s/devops-ci-demo-service.yaml
 
-      - name: Apply Kubernetes Service
-        run: kubectl apply -f kubernetes/service.yaml
+      - name: Update Kubernetes Deployment
+        run: |
+          kubectl set image deployment/devops-ci-demo devops-ci-demo=minikube/devops-ci-demo-img:latest
+
+      - name: Check Deployment Status
+        run: kubectl rollout status deployment/devops-ci-demo
