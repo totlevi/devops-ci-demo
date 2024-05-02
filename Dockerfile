@@ -10,7 +10,7 @@ RUN mvn -B package --file pom.xml -DskipTests
 # Create small run time image with only a Java JRE
 FROM eclipse-temurin:17-jre-alpine
 # Expose port 8088
-EXPOSE 8088
+EXPOSE 8081
 # Add the jar file
 COPY --from=build /app/target/*.jar devops-ci-demo-0.0.1-SNAPSHOT.jar
 # Start the application

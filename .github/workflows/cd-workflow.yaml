@@ -50,11 +50,11 @@ jobs:
           kubectl port-forward service/k8s-doc-example 8081:8081 &> /dev/null & sleep 5
           kubectl port-forward service/k8s-doc-example 8081:8081 &> /dev/null &
 
-      #      - name: Direct Pod Access Test
-      #        run: |
-      #          POD_NAME=$(kubectl get pod -l app=k8s-doc-example -o jsonpath="{.items[0].metadata.name}")
-      #          kubectl exec $POD_NAME -- curl -i localhost:8081/
-
+#      - name: Direct Pod Access Test
+#        run: |
+#          POD_NAME=$(kubectl get pod -l app=k8s-doc-example -o jsonpath="{.items[0].metadata.name}")
+#          kubectl exec $POD_NAME -- curl -i localhost:8081/
+      
 
       - name: Cleanup
         run: |
