@@ -1,0 +1,62 @@
+name: CD - Deploy to Minikube using Github Actions
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  job1:
+    name: Build and Deploy to Minikube
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start Minikube
+        uses: medyagh/setup-minikube@latest
+
+      - name: Try the cluster
+        run: kubectl get pods -A
+
+      - name: Build Image
+        run: |
+          export SHELL=/bin/bash
+          eval $(minikube -p minikube docker-env)
+          docker build -f ./Dockerfile -t k8s-doc-example:v2.15.3 .
+          echo "Verifying images:"
+          docker images
+
+      - name: Deploy to Minikube
+        run: |
+          kubectl apply -f deploy.yaml
+          kubectl wait --for=condition=Ready pod -l app=k8s-doc-example
+          kubectl get all
+
+      - name: Inspect Services and Pods
+        run: |
+          echo "Services:"
+          kubectl get svc
+          echo "Pods:"
+          kubectl get pods
+          echo "Logs of the first pod:"
+          kubectl logs $(kubectl get pod -l app=k8s-doc-example -o jsonpath="{.items[0].metadata.name}")
+
+
+      - name: Test service URLs
+        run: |
+          echo "SERVICE_URL=$(minikube service k8s-doc-example --url)"
+          kubectl port-forward service/k8s-doc-example 8081:8081 &> /dev/null & sleep 5
+          kubectl port-forward service/k8s-doc-example 8081:8081 &> /dev/null &
+
+      #      - name: Direct Pod Access Test
+      #        run: |
+      #          POD_NAME=$(kubectl get pod -l app=k8s-doc-example -o jsonpath="{.items[0].metadata.name}")
+      #          kubectl exec $POD_NAME -- curl -i localhost:8081/
+
+
+      - name: Cleanup
+        run: |
+          eval $(minikube docker-env -u)
+          minikube delete
